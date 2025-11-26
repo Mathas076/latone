@@ -1,13 +1,28 @@
 {
-    "posts": [
-      { "id": "1", "title": "a title", "views": 100 },
-      { "id": "2", "title": "another title", "views": 200 }
-    ],
-    "comments": [
-      { "id": "1", "text": "a comment about post 1", "postId": "1" },
-      { "id": "2", "text": "another comment about post 1", "postId": "1" }
-    ],
-    "profile": {
-      "name": "typicode"
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Completar proyecto de React",
+      "type": "trabajo",
+      "priority": "alta",
+      "completed": false,
+      "createdAt": "2024-11-26T10:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "title": "Hacer ejercicio",
+      "type": "personal",
+      "priority": "media",
+      "completed": false,
+      "createdAt": "2024-11-26T11:30:00.000Z"
+    },
+    {
+      "id": 3,
+      "title": "Comprar víveres",
+      "type": "hogar",
+      "priority": "baja",
+      "completed": true,
+      "createdAt": "2024-11-26T09:15:00.000Z"
     }
-  }
+  ]
+}
