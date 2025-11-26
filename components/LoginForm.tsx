@@ -22,8 +22,8 @@ export function LoginForm({ onLoginPress, onRegisterPress, isDisabled = true }: 
 
   return (
     <>
-      <CustomText variant='large'>Inicia sesión!</CustomText>
-      <CustomText variant='medium'>Ingresa tus datos para acceder a nuestra app!</CustomText>
+      <CustomText variant='large' dark>Inicia sesión!</CustomText>
+      <CustomText variant='medium' dark>Ingresa tus datos para acceder a nuestra app!</CustomText>
           
       {/* Email */}
       <TextInput
@@ -45,7 +45,7 @@ export function LoginForm({ onLoginPress, onRegisterPress, isDisabled = true }: 
       />
 
       {error && (
-        <CustomText variant='small' >
+        <CustomText variant='small' dark >
           {error}
         </CustomText>
       )}
