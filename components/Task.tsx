@@ -1,169 +1,214 @@
-
+// components/Task.tsx
 import React, { useState } from 'react';
+import { View, TextInput, ScrollView, Alert, TouchableOpacity, Text } from 'react-native';
 import axios from 'axios';
-import CustomText from './CustomText'; 
+import CustomText from './CustomText';
 
-export default function TaskForm() {
+// IMPORTANTE: Cambia esta URL según tu configuración
+const API_URL = "http://10.0.2.2:3000/tasks"; // Android Emulator
+ //const API_URL = "http://localhost:3000/tasks"; // iOS Simulator
+// const API_URL = "http://TU_IP_LOCAL:3000/tasks"; // Dispositivo físico
+
+interface TaskFormProps {
+  onTaskAdded?: () => void;
+  onCancel?: () => void;
+}
+
+export default function TaskForm({ onTaskAdded, onCancel }: TaskFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     type: '',
     priority: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const taskTypes = [
+    { label: 'Personal', value: 'personal' },
+    { label: 'Trabajo', value: 'trabajo' },
+    { label: 'Estudio', value: 'estudio' },
+    { label: 'Hogar', value: 'hogar' },
+    { label: 'Otro', value: 'otro' }
+  ];
+
+  const priorities = [
+    { label: 'Alta', value: 'alta', color: 'bg-red-500' },
+    { label: 'Media', value: 'media', color: 'bg-yellow-500' },
+    { label: 'Baja', value: 'baja', color: 'bg-green-500' }
+  ];
 
   const handleSubmit = async () => {
-    if (!formData.title || !formData.type || !formData.priority) {
-      alert('Por favor completa todos los campos');
+    // Validación
+    if (!formData.title.trim() || !formData.type || !formData.priority) {
+      Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
     
     try {
+      setLoading(true);
+
       const newTask = {
-        title: formData.title,
+        title: formData.title.trim(),
         type: formData.type,
         priority: formData.priority,
         completed: false,
         createdAt: new Date().toISOString()
       };
 
-      const response = await axios.post('http://localhost:3000/tasks', newTask);
+      const response = await axios.post(API_URL, newTask);
       
-      console.log('Tarea guardada exitosamente:', response.data);
-      alert('¡Tarea agregada exitosamente!');
+      console.log('✅ Tarea guardada:', response.data);
       
-      setFormData({
-        title: '',
-        type: '',
-        priority: ''
-      });
-    } catch (error) {
-      console.error('Error al guardar la tarea:', error);
-      alert('Error al guardar la tarea. Asegúrate de que json-server esté corriendo.');
+      Alert.alert(
+        '¡Éxito!', 
+        'Tarea agregada correctamente',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Limpiar formulario
+              setFormData({
+                title: '',
+                type: '',
+                priority: ''
+              });
+              
+              // Llamar callback si existe
+              if (onTaskAdded) {
+                onTaskAdded();
+              }
+            }
+          }
+        ]
+      );
+      
+    } catch (error: any) {
+      console.error('❌ Error al guardar:', error.message);
+      Alert.alert(
+        'Error', 
+        'No se pudo guardar la tarea. Verifica que json-server esté corriendo.'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <ScrollView className="flex-1">
+      <View className="p-6">
+        {/* Título de la tarea */}
+        <View className="mb-6">
+          <CustomText variant="large" dark>
+            Título de la Tarea
+          </CustomText>
+          <TextInput
+            value={formData.title}
+            onChangeText={(text) => setFormData(prev => ({ ...prev, title: text }))}
+            placeholder="Ingresa el título de tu tarea"
+            className="bg-white text-black rounded-lg p-4 mt-2 border-2 border-gray-300 text-base"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
 
-          {/* Header */}
-          <div className="bg-indigo-600 -mx-8 -mt-8 mb-8 p-6 rounded-t-2xl">
-            <CustomText variant="large">
-              Nueva Tarea
-            </CustomText>
-          </div>
-
-          <div className="space-y-6">
-            {/* Título */}
-            <div>
-              <label htmlFor="title" className="block mb-2">
-                <CustomText variant="large" dark={true}>
-                  Título de la Tarea
-                </CustomText>
-              </label>
-
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition"
-                placeholder="Ingresa el título de tu tarea"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Tipo */}
-              <div>
-                <label htmlFor="type" className="block mb-2">
-                  <CustomText variant="medium" dark={true}>
-                    Tipo
-                  </CustomText>
-                </label>
-
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 transition"
-                >
-                  <option value="">Selecciona un tipo</option>
-                  <option value="personal">Personal</option>
-                  <option value="trabajo">Trabajo</option>
-                  <option value="estudio">Estudio</option>
-                  <option value="hogar">Hogar</option>
-                  <option value="otro">Otro</option>
-                </select>
-              </div>
-
-              {/* Prioridad */}
-              <div>
-                <label htmlFor="priority" className="block mb-2">
-                  <CustomText variant="medium" dark={true}>
-                    Prioridad
-                  </CustomText>
-                </label>
-
-                <select
-                  id="priority"
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-indigo-500 transition"
-                >
-                  <option value="">Selecciona prioridad</option>
-                  <option value="alta">Alta</option>
-                  <option value="media">Media</option>
-                  <option value="baja">Baja</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Botón */}
-            <div className="pt-4">
-              <button
-                onClick={handleSubmit}
-                className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-indigo-700 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+        {/* Tipo de tarea */}
+        <View className="mb-6">
+          <CustomText variant="medium" dark>
+            Tipo
+          </CustomText>
+          <View className="flex-row flex-wrap gap-2 mt-2">
+            {taskTypes.map((type) => (
+              <TouchableOpacity
+                key={type.value}
+                onPress={() => setFormData(prev => ({ ...prev, type: type.value }))}
+                className={`px-4 py-3 rounded-lg border-2 ${
+                  formData.type === type.value
+                    ? 'bg-indigo-600 border-indigo-600'
+                    : 'bg-white border-gray-300'
+                }`}
               >
-                <CustomText variant="medium">
-                  Agregar Tarea
-                </CustomText>
-              </button>
-            </div>
-          </div>
+                <Text className={`font-semibold ${
+                  formData.type === type.value ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {type.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
-          {/* Vista previa */}
-          {(formData.title || formData.type || formData.priority) && (
-            <div className="mt-8 p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
-              <div className="mb-2">
-                <CustomText variant="small" dark={true}>
-                  Vista previa:
-                </CustomText>
-              </div>
+        {/* Prioridad */}
+        <View className="mb-6">
+          <CustomText variant="medium" dark>
+            Prioridad
+          </CustomText>
+          <View className="flex-row gap-2 mt-2">
+            {priorities.map((priority) => (
+              <TouchableOpacity
+                key={priority.value}
+                onPress={() => setFormData(prev => ({ ...prev, priority: priority.value }))}
+                className={`flex-1 px-4 py-3 rounded-lg border-2 ${
+                  formData.priority === priority.value
+                    ? `${priority.color} border-transparent`
+                    : 'bg-white border-gray-300'
+                }`}
+              >
+                <Text className={`font-semibold text-center ${
+                  formData.priority === priority.value ? 'text-white' : 'text-gray-700'
+                }`}>
+                  {priority.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
-              <p className="text-gray-700">
-                <span className="font-semibold">Título:</span> {formData.title || '---'}
-              </p>
-              <p className="text-gray-700">
-                <span className="font-semibold">Tipo:</span> {formData.type || '---'}
-              </p>
-              <p className="text-gray-700">
-                <span className="font-semibold">Prioridad:</span> {formData.priority || '---'}
-              </p>
-            </div>
+        {/* Vista previa */}
+        {(formData.title || formData.type || formData.priority) && (
+          <View className="mb-6 p-4 bg-gray-100 rounded-lg border-2 border-gray-200">
+            <CustomText variant="small" dark>
+              Vista previa:
+            </CustomText>
+            <Text className="text-gray-700 mt-2">
+              <Text className="font-semibold">Título: </Text>
+              {formData.title || '---'}
+            </Text>
+            <Text className="text-gray-700 mt-1">
+              <Text className="font-semibold">Tipo: </Text>
+              {formData.type ? taskTypes.find(t => t.value === formData.type)?.label : '---'}
+            </Text>
+            <Text className="text-gray-700 mt-1">
+              <Text className="font-semibold">Prioridad: </Text>
+              {formData.priority ? priorities.find(p => p.value === formData.priority)?.label : '---'}
+            </Text>
+          </View>
+        )}
+
+        {/* Botones */}
+        <View className="flex-row gap-3">
+          {onCancel && (
+            <TouchableOpacity
+              onPress={onCancel}
+              className="flex-1 bg-gray-300 p-4 rounded-lg items-center"
+              disabled={loading}
+            >
+              <Text className="text-gray-700 font-semibold text-base">
+                Cancelar
+              </Text>
+            </TouchableOpacity>
           )}
-        </div>
-      </div>
-    </div>
+
+          <TouchableOpacity
+            onPress={handleSubmit}
+            className={`flex-1 p-4 rounded-lg items-center ${
+              loading ? 'bg-indigo-400' : 'bg-indigo-600'
+            }`}
+            disabled={loading}
+          >
+            <Text className="text-white font-semibold text-base">
+              {loading ? 'Guardando...' : 'Agregar Tarea'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 }
