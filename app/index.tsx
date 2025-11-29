@@ -8,7 +8,7 @@ export default function Index() {
 
   const handleLogin = () => {
     console.log('Iniciando sesión...');
-    router.replace('/dashboard');
+    router.replace('/(tabs)/dashboard');
   };
 
   return (
